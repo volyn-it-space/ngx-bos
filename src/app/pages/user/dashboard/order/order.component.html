@@ -1,0 +1,52 @@
+<div class="grid gap-4">
+	<div
+		class="flex flex-col gap-4 rounded-[var(--radius-card)] border border-[var(--c-border)] bg-[var(--c-bg-secondary)] p-5 shadow-[var(--shadow-sm)] sm:p-4"
+	>
+		<form (submit)="wFormSubmit(); $event.preventDefault()" class="flex flex-col gap-3">
+			<wselect
+				[label]="translateService.translate('Customer')() + ' *'"
+				[placeholder]="translateService.translate('Customer')()"
+				[items]="customers()"
+				[searchable]="true"
+				[raw]="true"
+				[(wModel)]="customerId"
+			></wselect>
+
+			<wselect
+				[label]="translateService.translate('Product')() + ' *'"
+				[placeholder]="translateService.translate('Product')()"
+				[items]="products()"
+				[searchable]="true"
+				[raw]="true"
+				[(wModel)]="productId"
+			></wselect>
+
+			<winput
+				label="Quantity"
+				[placeholder]="translateService.translate('Quantity')()"
+				[formField]="orderForm.quantity"
+				type="number"
+			></winput>
+
+			<wselect
+				label="Status"
+				[placeholder]="translateService.translate('Status')()"
+				[items]="statuses()"
+				[(wModel)]="status"
+			></wselect>
+
+			<winput
+				label="Notes"
+				[placeholder]="translateService.translate('Notes')()"
+				[formField]="orderForm.notes"
+				type="textarea"
+			></winput>
+
+			<div class="mt-2 flex flex-wrap gap-2">
+				<wbutton [disabled]="isSubmitDisabled()" type="primary">
+					<span translate>Create</span>
+				</wbutton>
+			</div>
+		</form>
+	</div>
+</div>

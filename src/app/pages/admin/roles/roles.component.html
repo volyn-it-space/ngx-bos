@@ -1,0 +1,33 @@
+<div class="flex flex-col gap-4">
+	@if (requests().length) {
+	<wtable
+		[rows]="requests()"
+		[columns]="requestColumns"
+		[config]="requestConfig"
+		[bindValue]="'uid'"
+		title="Employee requests"
+	>
+		<ng-template cell="actions" let-row>
+			<div class="flex flex-wrap gap-2">
+				<wbutton type="primary" (wClick)="accept(row)">
+					<span translate>Accept</span>
+				</wbutton>
+				<wbutton type="secondary" (wClick)="ignore(row)">
+					<span translate>Ignore</span>
+				</wbutton>
+			</div>
+		</ng-template>
+	</wtable>
+	}
+
+	<!--==== Table Module ====-->
+	<wtable
+		[rows]="rows()"
+		[columns]="columns"
+		[config]="config"
+		[bindValue]="'id'"
+		title="Employees"
+	>
+	</wtable>
+	<!-- ==================== -->
+</div>

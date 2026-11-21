@@ -1,0 +1,33 @@
+<main class="dashboard">
+	<wtabs [activeIndex]="activeIndex()" (activeIndexChange)="select($event)">
+		<wtab header="Analytics">
+			@if (isOpen('analytics')) {
+			<app-dashboard-analytics />
+			}
+		</wtab>
+
+		<wtab header="Customer">
+			@if (isOpen('customer')) {
+			<app-customer />
+			}
+		</wtab>
+
+		<wtab header="Product">
+			@if (isOpen('product')) {
+			<app-dashboard-product />
+			}
+		</wtab>
+
+		<wtab header="Order">
+			@if (isOpen('order')) {
+			<app-dashboard-order />
+			}
+		</wtab>
+
+		<wtab header="Tasks">
+			@if (isOpen('tasks')) {
+			<app-dashboard-task />
+			}
+		</wtab>
+	</wtabs>
+</main>

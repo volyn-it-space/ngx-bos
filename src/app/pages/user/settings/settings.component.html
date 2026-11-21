@@ -1,0 +1,42 @@
+<div class="settings">
+	<section class="settings__section">
+		<h2 class="settings__label" translate>Theme</h2>
+		<div class="settings__content settings__content--inline"><icon-theme size="48px" [showText]="true"></icon-theme></div>
+	</section>
+
+	<section class="settings__section">
+		<h2 class="settings__label" translate>Switch language</h2>
+		<div class="settings__languages">
+			@for (language of languages; track language.code) {
+			<button
+				(click)="setLanguage(language.code)"
+				class="settings__language"
+				[class.settings__language--active]="language.code === languageService.language()"
+				[attr.aria-pressed]="language.code === languageService.language()"
+				type="button"
+			>
+				@if (flag(language.code); as src) {
+				<img [src]="src" class="settings__flag" alt="" aria-hidden="true" />
+				}
+				<span>{{ language.nativeName || language.name }}</span>
+			</button>
+			}
+		</div>
+	</section>
+
+	<section class="settings__section">
+		<h2 class="settings__label" translate>Employee access</h2>
+		@if (employees.isEmployee()) {
+		<p class="settings__text" translate>You are an employee.</p>
+		} @else if (employees.selfRequested()) {
+		<p class="settings__text" translate>Your request is waiting for an administrator.</p>
+		} @else {
+		<div class="settings__content settings__content--inline">
+			<wbutton type="primary" (wClick)="requestAccess()">
+				<span translate>Ask to become an employee</span>
+			</wbutton>
+		</div>
+		}
+	</section>
+
+</div>

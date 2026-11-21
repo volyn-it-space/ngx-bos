@@ -1,0 +1,62 @@
+<div
+	class="flex flex-col gap-4 rounded-[var(--radius-card)] border border-[var(--c-border)] bg-[var(--c-bg-secondary)] p-5 shadow-[var(--shadow-sm)] sm:p-4"
+>
+	<form (submit)="wFormSubmit(); $event.preventDefault()" class="flex flex-col gap-3">
+		<winput
+			[label]="translateService.translate('Company name')() + ' *'"
+			[placeholder]="translateService.translate('Company name')()"
+			[formField]="companyForm.name"
+		></winput>
+
+		<winput
+			label="Legal name"
+			[placeholder]="translateService.translate('Legal name')()"
+			[formField]="companyForm.legalName"
+		></winput>
+
+		<winput
+			label="Email"
+			[placeholder]="translateService.translate('Email')()"
+			[formField]="companyForm.email"
+			type="email"
+		></winput>
+
+		<winput
+			label="Phone"
+			[placeholder]="translateService.translate('Phone')()"
+			[formField]="companyForm.phone"
+			type="tel"
+		></winput>
+
+		<winput
+			label="Website"
+			[placeholder]="translateService.translate('Website')()"
+			[formField]="companyForm.website"
+		></winput>
+
+		<winput
+			label="Address"
+			[placeholder]="translateService.translate('Address')()"
+			[formField]="companyForm.address"
+		></winput>
+
+		<winput
+			label="Tax ID"
+			[placeholder]="translateService.translate('Tax ID')()"
+			[formField]="companyForm.taxId"
+		></winput>
+
+		<winput
+			label="Description"
+			[placeholder]="translateService.translate('Description')()"
+			[formField]="companyForm.description"
+			type="textarea"
+		></winput>
+
+		<div class="mt-2 flex flex-wrap gap-2">
+			<wbutton [disabled]="isSubmitDisabled()" type="primary">
+				<span translate>Save</span>
+			</wbutton>
+		</div>
+	</form>
+</div>

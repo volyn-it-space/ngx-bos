@@ -1,0 +1,61 @@
+{
+	"indexes": [
+		{
+			"collectionGroup": "bosCustomers",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{
+					"fieldPath": "createdBy",
+					"order": "ASCENDING"
+				},
+				{
+					"fieldPath": "createdAt",
+					"order": "DESCENDING"
+				}
+			]
+		},
+		{
+			"collectionGroup": "bosProducts",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{
+					"fieldPath": "createdBy",
+					"order": "ASCENDING"
+				},
+				{
+					"fieldPath": "createdAt",
+					"order": "DESCENDING"
+				}
+			]
+		},
+		{
+			"collectionGroup": "bosOrders",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{
+					"fieldPath": "createdBy",
+					"order": "ASCENDING"
+				},
+				{
+					"fieldPath": "createdAt",
+					"order": "DESCENDING"
+				}
+			]
+		},
+		{
+			"collectionGroup": "bosTasks",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{
+					"fieldPath": "createdBy",
+					"order": "ASCENDING"
+				},
+				{
+					"fieldPath": "createdAt",
+					"order": "DESCENDING"
+				}
+			]
+		}
+	],
+	"fieldOverrides": []
+}

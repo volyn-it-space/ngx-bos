@@ -1,0 +1,12 @@
+@use 'src/styles/theme' as *;
+
+// Full width: the layout (`.user__main`) already gives the even gap around the page.
+.dashboard {
+	display: grid;
+	gap: var(--sp-5);
+}
+
+.dashboard__content {
+	display: grid;
+	gap: var(--sp-4);
+}

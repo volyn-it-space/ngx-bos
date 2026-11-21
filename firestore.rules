@@ -1,0 +1,296 @@
+rules_version = '2';
+
+// Rules of the Firestore database of the ngx-bos Firebase project (see firebase.json). Deploy:
+//   npm run rules
+// The admin list must match `admins` in src/environments/environment.prod.ts.
+//
+// Every write is also checked for its shape: only the fields the app writes, with their types and
+// sizes. Keep the field lists in step with the services in src/app/feature/firebase/.
+service cloud.firestore {
+	match /databases/{database}/documents {
+		function signedIn() {
+			return request.auth != null;
+		}
+
+		// By Firebase uid, or by verified Google email: the same lists as `admins` in the environment.
+		function isAdmin() {
+			return signedIn() && (
+				request.auth.uid in ['F3elGD7429UUbXVW1wqkUlBP7Gz2']
+				|| (request.auth.token.get('email_verified', false) == true && myEmail() in ['ceo@webart.work'])
+			);
+		}
+
+		function isSelf(uid) {
+			return signedIn() && request.auth.uid == uid;
+		}
+
+		function myEmail() {
+			return signedIn() && 'email' in request.auth.token ? request.auth.token.email.lower() : '';
+		}
+
+		// The email of the Firebase account as the app writes it (`user.email ?? ''`), not lowercased.
+		function myRawEmail() {
+			return request.auth.token.get('email', '');
+		}
+
+		// ---- Shape helpers: they check the document as it will be after the write. ----
+
+		function incoming() {
+			return request.resource.data;
+		}
+
+		// Exactly these fields, no more and no fewer.
+		function hasExactly(keys) {
+			return incoming().keys().hasOnly(keys) && incoming().keys().hasAll(keys);
+		}
+
+		function isText(key, max) {
+			return incoming()[key] is string && incoming()[key].size() <= max;
+		}
+
+		function isFilledText(key, max) {
+			return isText(key, max) && incoming()[key].size() > 0;
+		}
+
+		// A field that may be missing (documents saved with merge).
+		function isOptionalText(key, max) {
+			return !(key in incoming()) || isText(key, max);
+		}
+
+		// A time as the app writes it: `new Date().toISOString()`.
+		function isIsoTime(key) {
+			return incoming()[key] is string
+				&& incoming()[key].matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?Z$');
+		}
+
+		function isNonNegative(key) {
+			return incoming()[key] is number && incoming()[key] >= 0;
+		}
+
+		// ---- Records that belong to the person who created them: customers, products, orders, tasks. ----
+
+		function canReadRecord() {
+			return isAdmin() || isSelf(resource.data.createdBy);
+		}
+
+		function canCreateRecord() {
+			return isSelf(request.resource.data.createdBy);
+		}
+
+		function canChangeRecord() {
+			return canReadRecord() && request.resource.data.createdBy == resource.data.createdBy;
+		}
+
+		// The fields every record has besides its own: who created it, and when.
+		function recordKeys(keys) {
+			return keys.concat(['createdBy', 'createdByEmail', 'createdAt']);
+		}
+
+		// A new record: exactly its fields, written as the signed-in person, now.
+		function isNewRecord(keys) {
+			return hasExactly(recordKeys(keys))
+				&& incoming().createdByEmail == myRawEmail()
+				&& isIsoTime('createdAt');
+		}
+
+		// A changed record: exactly its fields; the creator (uid and email) and creation time stay.
+		function isChangedRecord(keys) {
+			return hasExactly(recordKeys(keys))
+				&& incoming().createdByEmail == resource.data.createdByEmail
+				&& incoming().createdAt == resource.data.createdAt;
+		}
+
+		function customerKeys() {
+			return ['name', 'email', 'phone', 'notes'];
+		}
+
+		function isValidCustomer() {
+			return isText('name', 200)
+				&& isText('email', 320)
+				&& isText('phone', 100)
+				&& isText('notes', 5000);
+		}
+
+		function productKeys() {
+			return ['name', 'sku', 'price', 'description'];
+		}
+
+		function isValidProduct() {
+			return isText('name', 200)
+				&& isText('sku', 100)
+				&& isNonNegative('price')
+				&& isText('description', 5000);
+		}
+
+		// ORDER_STATUSES in firebase-orders.service.ts.
+		function orderKeys() {
+			return ['customerId', 'customerName', 'productId', 'productName', 'quantity', 'total', 'status', 'notes'];
+		}
+
+		function isValidOrder() {
+			return isFilledText('customerId', 200)
+				&& isFilledText('customerName', 200)
+				&& isFilledText('productId', 200)
+				&& isFilledText('productName', 200)
+				&& incoming().quantity is int
+				&& incoming().quantity >= 1
+				&& isNonNegative('total')
+				&& incoming().status in ['new', 'paid', 'shipped', 'done', 'cancelled']
+				&& isText('notes', 5000);
+		}
+
+		// TASK_STATUSES in firebase-tasks.service.ts; the due date is `YYYY-MM-DD` or empty.
+		function taskKeys() {
+			return ['title', 'description', 'assignee', 'dueDate', 'status'];
+		}
+
+		function isValidTask() {
+			return isText('title', 200)
+				&& isText('description', 5000)
+				&& isText('assignee', 320)
+				&& incoming().dueDate is string
+				&& (incoming().dueDate == '' || incoming().dueDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
+				&& incoming().status in ['todo', 'in-progress', 'done'];
+		}
+
+		match /bosCustomers/{id} {
+			allow read, delete: if canReadRecord();
+			allow create: if canCreateRecord() && isNewRecord(customerKeys()) && isValidCustomer();
+			allow update: if canChangeRecord() && isChangedRecord(customerKeys()) && isValidCustomer();
+		}
+
+		match /bosProducts/{id} {
+			allow read, delete: if canReadRecord();
+			allow create: if canCreateRecord() && isNewRecord(productKeys()) && isValidProduct();
+			allow update: if canChangeRecord() && isChangedRecord(productKeys()) && isValidProduct();
+		}
+
+		match /bosOrders/{id} {
+			allow read, delete: if canReadRecord();
+			allow create: if canCreateRecord() && isNewRecord(orderKeys()) && isValidOrder();
+			allow update: if canChangeRecord() && isChangedRecord(orderKeys()) && isValidOrder();
+		}
+
+		match /bosTasks/{id} {
+			allow read, delete: if canReadRecord();
+			allow create: if canCreateRecord() && isNewRecord(taskKeys()) && isValidTask();
+			allow update: if canChangeRecord() && isChangedRecord(taskKeys()) && isValidTask();
+		}
+
+		// ---- Activity log and notifications: anyone signed in writes entries as themselves; the admin
+		// reads the log; a recipient reads their notifications and may only mark them read. ----
+
+		// BosActivityAction and BosActivityEntity in firebase-activity.service.ts.
+		function isValidActivity() {
+			return hasExactly(['action', 'entity', 'entityId', 'title', 'actorUid', 'actorEmail', 'actorName',
+					'recipientEmail', 'read', 'createdAt'])
+				&& incoming().action in ['create', 'update', 'delete', 'accept', 'ignore', 'request']
+				&& incoming().entity in ['task', 'customer', 'product', 'order', 'employee', 'employee-request',
+					'company', 'translation']
+				&& isText('entityId', 200)
+				&& isText('title', 200)
+				&& incoming().actorEmail == myRawEmail()
+				&& isText('actorName', 120)
+				&& isText('recipientEmail', 320)
+				&& incoming().read == false
+				&& isIsoTime('createdAt');
+		}
+
+		match /bosActivity/{id} {
+			allow create: if signedIn() && request.resource.data.actorUid == request.auth.uid && isValidActivity();
+			allow read: if isAdmin() || (myEmail() != '' && resource.data.recipientEmail == myEmail());
+			allow update: if myEmail() != ''
+				&& resource.data.recipientEmail == myEmail()
+				&& request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+				&& incoming().read is bool;
+			allow delete: if isAdmin();
+		}
+
+		// ---- Personal settings and identity, one document per Firebase uid (saved with merge). ----
+
+		// `thumb` may hold an image as a data URL, so it only stays below the document size limit.
+		function isValidProfile(uid) {
+			return incoming().keys().hasOnly(['uid', 'email', 'displayName', 'name', 'phone', 'bio', 'thumb',
+					'mode', 'density', 'radius', 'language'])
+				&& (!('uid' in incoming()) || incoming().uid == uid)
+				&& isOptionalText('email', 320)
+				&& isOptionalText('displayName', 200)
+				&& isOptionalText('name', 200)
+				&& isOptionalText('phone', 100)
+				&& isOptionalText('bio', 5000)
+				&& isOptionalText('thumb', 900000)
+				&& isOptionalText('mode', 40)
+				&& isOptionalText('density', 40)
+				&& isOptionalText('radius', 40)
+				&& isOptionalText('language', 40);
+		}
+
+		match /bosProfiles/{uid} {
+			allow read: if isSelf(uid) || isAdmin();
+			allow create, update: if isSelf(uid) && isValidProfile(uid);
+			allow delete: if isAdmin();
+		}
+
+		function isValidEmployee(uid) {
+			return hasExactly(['uid', 'email', 'name', 'addedAt'])
+				&& incoming().uid == uid
+				&& isText('email', 320)
+				&& isText('name', 200)
+				&& isIsoTime('addedAt');
+		}
+
+		match /bosEmployees/{uid} {
+			allow read: if isSelf(uid) || isAdmin();
+			allow create, update: if isAdmin() && isValidEmployee(uid);
+			allow delete: if isAdmin();
+		}
+
+		function isValidEmployeeRequest() {
+			return hasExactly(['uid', 'email', 'name', 'requestedAt'])
+				&& isText('email', 320)
+				&& isText('name', 200)
+				&& isIsoTime('requestedAt');
+		}
+
+		match /bosEmployeeRequests/{uid} {
+			allow read, delete: if isSelf(uid) || isAdmin();
+			allow create, update: if isSelf(uid) && request.resource.data.uid == uid && isValidEmployeeRequest();
+		}
+
+		// ---- Company information, one document (`general`), saved with merge. ----
+
+		function isValidCompany() {
+			return hasExactly(['name', 'legalName', 'email', 'phone', 'website', 'address', 'taxId', 'description'])
+				&& isText('name', 200)
+				&& isText('legalName', 200)
+				&& isText('email', 320)
+				&& isText('phone', 100)
+				&& isText('website', 500)
+				&& isText('address', 500)
+				&& isText('taxId', 100)
+				&& isText('description', 5000);
+		}
+
+		match /bosCompany/{id} {
+			allow read: if signedIn();
+			allow create, update: if isAdmin() && isValidCompany();
+			allow delete: if isAdmin();
+		}
+
+		// ---- Custom texts are applied for every visitor, also before sign-in. ----
+
+		// `translations` maps a language code to the text in that language.
+		function isValidTranslation() {
+			return hasExactly(['sourceText', 'translations'])
+				&& isFilledText('sourceText', 5000)
+				&& incoming().translations is map
+				&& incoming().translations.size() <= 50;
+		}
+
+		match /bosTranslations/{id} {
+			allow read: if true;
+			allow create, update: if isAdmin() && isValidTranslation();
+			allow delete: if isAdmin();
+		}
+	}
+}

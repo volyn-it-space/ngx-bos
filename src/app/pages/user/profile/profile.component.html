@@ -1,0 +1,36 @@
+<section class="profile">
+	<div class="profile__card">
+		<div class="profile__tools">
+			<material-icon
+				[ariaLabel]="translateService.translate('Settings')()"
+				routerLink="/settings"
+				icon="settings"
+			></material-icon>
+			<material-icon
+				[ariaLabel]="translateService.translate('Logout')()"
+				(click)="userService.logout()"
+				icon="logout"
+			></material-icon>
+		</div>
+
+		<ngx-file
+			mode="single-image"
+			view="thumb-only"
+			[wImage]="userService.thumb()"
+			(wImageChange)="updateThumb($event || '')"
+			[container]="'user'"
+			[name]="userService.user()._id + '.jpg'"
+			[accept]="'image/*'"
+			[clearable]="false"
+			[preview]="true"
+			[cropWidth]="512"
+			[cropHeight]="512"
+		></ngx-file>
+
+		<form (submit)="$event.preventDefault()" class="profile__form">
+			<winput label="Name" [placeholder]="translateService.translate('Enter your name...')()" [formField]="profileForm.name"></winput>
+			<winput label="Phone" [placeholder]="translateService.translate('Enter your phone...')()" [formField]="profileForm.phone" type="tel"></winput>
+			<winput label="Biography" [placeholder]="translateService.translate('Enter your bio...')()" [formField]="profileForm.bio" type="textarea"></winput>
+		</form>
+	</div>
+</section>

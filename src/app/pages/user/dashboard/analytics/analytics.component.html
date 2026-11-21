@@ -1,0 +1,31 @@
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+	@for (card of cards(); track card.key) {
+	<section
+		class="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--c-border)] bg-[var(--c-bg-secondary)] p-5 shadow-[var(--shadow-sm)]"
+	>
+		<h2 class="m-0 text-xs font-bold uppercase text-[var(--c-text-muted)]" [translate]="card.label"></h2>
+
+		<dl class="m-0 grid gap-2">
+			<div class="flex items-baseline justify-between gap-3">
+				<dt class="text-sm text-[var(--c-text-muted)]" translate>Customers</dt>
+				<dd class="m-0 text-2xl font-bold text-[var(--c-text-primary)]">{{ card.customers }}</dd>
+			</div>
+
+			<div class="flex items-baseline justify-between gap-3">
+				<dt class="text-sm text-[var(--c-text-muted)]" translate>Orders</dt>
+				<dd class="m-0 text-2xl font-bold text-[var(--c-text-primary)]">{{ card.orders }}</dd>
+			</div>
+
+			<div class="flex items-baseline justify-between gap-3">
+				<dt class="text-sm text-[var(--c-text-muted)]" translate>Tasks</dt>
+				<dd class="m-0 text-2xl font-bold text-[var(--c-text-primary)]">{{ card.tasks }}</dd>
+			</div>
+
+			<div class="flex items-baseline justify-between gap-3">
+				<dt class="text-sm text-[var(--c-text-muted)]" translate>Done</dt>
+				<dd class="m-0 text-lg font-semibold text-[var(--c-text-primary)]">{{ card.done }}</dd>
+			</div>
+		</dl>
+	</section>
+	}
+</div>

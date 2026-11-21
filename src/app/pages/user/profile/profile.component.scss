@@ -1,0 +1,5 @@
+.profile {
+	&__card { position: relative; display: flex; flex-direction: column; gap: var(--sp-4); padding: var(--sp-4); border: 1px solid var(--c-border); border-radius: var(--radius-card); background: var(--c-bg-secondary); box-shadow: var(--shadow-sm); }
+	&__tools { position: absolute; top: var(--sp-3); right: var(--sp-3); display: flex; align-items: center; gap: .25rem; }
+	&__form { display: flex; flex-direction: column; gap: var(--sp-3); }
+}

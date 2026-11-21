@@ -1,0 +1,27 @@
+<section class="page">
+	<wtabs [activeIndex]="activeIndex()" (activeIndexChange)="select($event)">
+		<wtab header="General">
+			@if (isOpen('general')) {
+			<ng-container *ngComponentOutlet="general" />
+			}
+		</wtab>
+
+		<wtab header="Employees">
+			@if (isOpen('employees')) {
+			<ng-container *ngComponentOutlet="employees" />
+			}
+		</wtab>
+
+		<wtab header="Forms">
+			@if (isOpen('forms')) {
+			<ng-container *ngComponentOutlet="forms" />
+			}
+		</wtab>
+
+		<wtab header="Translations">
+			@if (isOpen('translations')) {
+			<ng-container *ngComponentOutlet="translations" />
+			}
+		</wtab>
+	</wtabs>
+</section>
